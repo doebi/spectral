@@ -28,10 +28,24 @@ const teensies = {
 
 function initWorld() {
   world = Array(dimension.x);
-  for (var x = 0, len = dimension.x; x < len; x++) {
+  for (var x = 0; x < dimension.x; x++) {
     world[x] = Array(dimension.y)
-    for (var y = 0, len = dimension.y; y < len; y++) {
+    for (var y = 0; y < dimension.y; y++) {
       world[x][y] = Array(dimension.z)
+    }
+  }
+}
+
+function setVoxel(xf, yf, zf, c) {
+  let x = xf.toFixed();
+  let y = yf.toFixed();
+  let z = zf.toFixed();
+  if ((x >= 0) && (x < dimension.x)) {
+    if ((y >= 0) && (y < dimension.y)) {
+      if ((z >= 0) && (z < dimension.z)) {
+        console.log(x, y, z);
+        world[Math.abs(x)][Math.abs(y)][Math.abs(z)] = c;
+      }
     }
   }
 }
@@ -40,36 +54,34 @@ function randomColor() {
   return [Math.random(), Math.random(), Math.random()];
 }
 
-/*
 function drawSphere(center, radius, color) {
-	float res = 30;
-	for (float m = 0; m < res; m++)
-		for (float n = 0; n < res; n++)
+  console.log('drawSphere', center, radius, color);
+	let res = 30;
+	for (let m = 0; m < res; m++) {
+		for (let n = 0; n < res; n++) {
 			setVoxel(
-					center.x + radius * Math.sin((float) Math.PI * m / res)
-							* Math.cos((float) 2 * Math.PI * n / res),
-					center.y + radius * Math.sin((float) Math.PI * m / res)
-							* Math.sin((float) 2 * Math.PI * n / res),
-					center.z + radius * Math.cos((float) Math.PI * m / res),
-					col);
+					center[0] + radius * Math.sin(Math.PI * m / res) * Math.cos(2 * Math.PI * n / res),
+					center[1] + radius * Math.sin(Math.PI * m / res) * Math.sin(2 * Math.PI * n / res),
+					center[2] + radius * Math.cos(Math.PI * m / res),
+					color);
+    }
+  }
 }
-*/
 
 function drawBackground(color) {
-  console.log("==============================");
-  for (var x = 0, len = dimension.x; x < len; x++) {
-    for (var y = 0, len = dimension.y; y < len; y++) {
-      for (var z = 0, len = dimension.z; z < len; z++) {
+  for (var x = 0; x < dimension.x; x++) {
+    for (var y = 0; y < dimension.y; y++) {
+      for (var z = 0; z < dimension.z; z++) {
 				world[x][y][z] = color;
       }
     }
   }
-  console.log(world);
 }
 
 function spawnSignal(id, strength) {
   let t = teensies[id];
   let sphere = {
+    center: t.center,
     strength,
     age: 0,
     color: randomColor()
@@ -79,7 +91,6 @@ function spawnSignal(id, strength) {
 
 function step() {
   let nSpheres = [];
-  //TODO: next step in simulation
   for (var i = 0, len = spheres.length; i < len; i++) {
     let s = spheres[i];
     s.age += 1;
@@ -90,15 +101,28 @@ function step() {
   }
 
   spheres = nSpheres;
+  console.log(spheres);
 }
 
 function draw() {
-  drawBackground("foo");
+  drawBackground([0, 0, 0]);
+
+  for (var i = 0, len = spheres.length; i < len; i++) {
+    let s = spheres[i];
+    drawSphere(s.center, s.age, s.color);
+  }
 
   /*
-  for (var i = 0, len = spheres.length; i < len; i++) {
-    drawSphere();
-  }
+  console.log(world[0]);
+  console.log(world[1]);
+  console.log(world[2]);
+  console.log(world[3]);
+  console.log(world[4]);
+  console.log(world[5]);
+  console.log(world[6]);
+  console.log(world[7]);
+  console.log(world[8]);
+  console.log(world[9]);
   */
 }
 
@@ -115,7 +139,7 @@ function setup() {
   // Listen for data on serial port
   // TODO: do this for every serial port / teensy
   port.on('data', function (data) {
-    let id = 'first';
+    let id = 'alpha';
     spawnSignal(id, Number(data.toString()));
   })
 
@@ -125,10 +149,7 @@ function setup() {
 
 function loop() {
   step();
-
   draw();
-
-  console.log(world);
   setTimeout(loop, 20);
 }
 
