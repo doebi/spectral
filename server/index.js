@@ -43,7 +43,7 @@ function setVoxel(xf, yf, zf, c) {
   if ((x >= 0) && (x < dimension.x)) {
     if ((y >= 0) && (y < dimension.y)) {
       if ((z >= 0) && (z < dimension.z)) {
-        console.log(x, y, z);
+        //console.log(x, y, z);
         world[Math.abs(x)][Math.abs(y)][Math.abs(z)] = c;
       }
     }
