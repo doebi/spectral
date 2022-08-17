@@ -1,13 +1,13 @@
-const { SerialPort } = require('serialport')
+const { SerialPort } = require('serialport');
+const mqtt = require('mqtt');
 
-let world = null;
+const client = mqtt.connect('mqtt://mqtt.devlol.org');
 
-let dimension = {
+const dimension = {
   x: 10,
   y: 10,
   z: 7
 };
-let spheres = [];
 
 const maxAge = 100;
 
@@ -26,6 +26,9 @@ const teensies = {
   }
 }
 
+let world = null;
+let spheres = [];
+
 function initWorld() {
   world = Array(dimension.x);
   for (var x = 0; x < dimension.x; x++) {
@@ -43,7 +46,6 @@ function setVoxel(xf, yf, zf, c) {
   if ((x >= 0) && (x < dimension.x)) {
     if ((y >= 0) && (y < dimension.y)) {
       if ((z >= 0) && (z < dimension.z)) {
-        //console.log(x, y, z);
         world[Math.abs(x)][Math.abs(y)][Math.abs(z)] = c;
       }
     }
@@ -51,19 +53,23 @@ function setVoxel(xf, yf, zf, c) {
 }
 
 function randomColor() {
-  return [Math.random(), Math.random(), Math.random()];
+  return [
+    Number(Number(Math.random()*255).toFixed()),
+    Number(Number(Math.random()*255).toFixed()),
+    Number(Number(Math.random()*255).toFixed())
+  ];
 }
 
 function drawSphere(center, radius, color) {
-  console.log('drawSphere', center, radius, color);
-	let res = 30;
-	for (let m = 0; m < res; m++) {
-		for (let n = 0; n < res; n++) {
-			setVoxel(
-					center[0] + radius * Math.sin(Math.PI * m / res) * Math.cos(2 * Math.PI * n / res),
-					center[1] + radius * Math.sin(Math.PI * m / res) * Math.sin(2 * Math.PI * n / res),
-					center[2] + radius * Math.cos(Math.PI * m / res),
-					color);
+  //console.log('drawSphere', center, radius, color);
+  let res = 30;
+  for (let m = 0; m < res; m++) {
+    for (let n = 0; n < res; n++) {
+      setVoxel(
+        center[0] + radius * Math.sin(Math.PI * m / res) * Math.cos(2 * Math.PI * n / res),
+        center[1] + radius * Math.sin(Math.PI * m / res) * Math.sin(2 * Math.PI * n / res),
+        center[2] + radius * Math.cos(Math.PI * m / res),
+        color);
     }
   }
 }
@@ -72,7 +78,7 @@ function drawBackground(color) {
   for (var x = 0; x < dimension.x; x++) {
     for (var y = 0; y < dimension.y; y++) {
       for (var z = 0; z < dimension.z; z++) {
-				world[x][y][z] = color;
+        world[x][y][z] = color;
       }
     }
   }
@@ -101,7 +107,7 @@ function step() {
   }
 
   spheres = nSpheres;
-  console.log(spheres);
+  //console.log(spheres);
 }
 
 function draw() {
@@ -112,18 +118,10 @@ function draw() {
     drawSphere(s.center, s.age, s.color);
   }
 
-  /*
-  console.log(world[0]);
-  console.log(world[1]);
-  console.log(world[2]);
-  console.log(world[3]);
-  console.log(world[4]);
-  console.log(world[5]);
-  console.log(world[6]);
-  console.log(world[7]);
-  console.log(world[8]);
-  console.log(world[9]);
-  */
+  if (client.connected) {
+    console.log("hi");
+    client.publish('artdanion/spectral/world', JSON.stringify(world));
+  }
 }
 
 function setup() {
