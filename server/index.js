@@ -119,8 +119,8 @@ function draw() {
   }
 
   if (client.connected) {
-    console.log("hi");
-    client.publish('artdanion/spectral/world', JSON.stringify(world));
+    console.log(JSON.stringify(world));
+    //client.publish('artdanion/spectral/world', JSON.stringify(world));
   }
 }
 
