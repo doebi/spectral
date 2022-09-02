@@ -5,7 +5,7 @@
 
 #define pot_address 0x2E // I2C address
 #define POTI A0
-#define POT_MAX 1023
+#define POT_MAX 120
 
 #define RED 0xFF0000
 #define GREEN 0x00FF00
@@ -41,8 +41,8 @@ const int potTreshold = 512; // value between 0 and 1
 
 // runtime variables
 int potVal;
-int now = 0;
-const int potInterval = 1000;
+unsigned int now = 0;
+const unsigned int potInterval = 1000;
 
 void colorWipe(int color, int wait) {
   for (int i = 0; i < leds.numPixels(); i++) {
@@ -107,17 +107,21 @@ void checkPot() {
 }
 
 void checkComm() {
-  byte incoming[3];
+  char incoming[3];
 
   if (Serial.available() > 0) {
     // read the incoming byte:
-    Serial.readBytesUntil('\n', incoming, 3);
+    Serial.readBytes(incoming, '*');
+    if(incoming[0] == 1) {
+      Serial.readBytes(incoming, 3);
 
-    Serial1.println("===========");
-    Serial1.println(incoming[0]);
-    Serial1.println(incoming[1]);
-    Serial1.println(incoming[2]);
-    Serial1.println("===========");
+      Serial1.println("++++++++++");
+      Serial1.println(incoming[0]);
+      Serial1.println(incoming[1]);
+      Serial1.println(incoming[2]);
+      Serial1.println("===========");
+    }
+
 
   }
 }
