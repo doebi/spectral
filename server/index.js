@@ -136,9 +136,10 @@ function draw() {
 
 function flush() {
   let color = colors[colorIndex];
-  frame = Buffer.from([color.r, color.g, color.b, '\n']);
+  // frame = Buffer.from([color.r, color.g, color.b, 0]);
+  frame = Buffer.from([0x01, 0x02, 0x03, 0x04]);
   port.write(frame);
-  port.write('\n');
+  // port.write('\n');
 
   /*
   if (frame != lastFrame) {
