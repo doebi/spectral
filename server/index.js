@@ -6,7 +6,7 @@ const mqtt = require('mqtt');
 const client = mqtt.connect('mqtt://mqtt.devlol.org');
 // serial port
 const port = new SerialPort({
-  path: '/dev/ttyUSB0',
+  path: '/dev/ttyACM0',
   baudRate: 115200,
 })
 // stream parser
@@ -14,7 +14,9 @@ const parser = port.pipe(new ReadlineParser({ delimiter: '\r\n' }))
 
 let frame, lastFrame;
 let colorIndex = 0;
-const colors = ["RED", "BLUE", "PINK", "ORANGE"];
+const colors = [
+  { r: 255, g: 0, b: 0 }
+];
 
 const dimension = {
   x: 10,
@@ -66,11 +68,11 @@ function setVoxel(xf, yf, zf, c) {
 }
 
 function randomColor() {
-  return [
-    Number(Number(Math.random()*255).toFixed()),
-    Number(Number(Math.random()*255).toFixed()),
-    Number(Number(Math.random()*255).toFixed())
-  ];
+  return {
+    r: Number(Number(Math.random()*255).toFixed()),
+    g: Number(Number(Math.random()*255).toFixed()),
+    b: Number(Number(Math.random()*255).toFixed())
+  };
 }
 
 function drawSphere(center, radius, color) {
@@ -134,14 +136,16 @@ function draw() {
 
 function flush() {
   let color = colors[colorIndex];
-  frame = Buffer.from(color) + "\n";
+  frame = Buffer.from([color.r, color.g, color.b, '\n']);
+  port.write(frame);
+  port.write('\n');
 
+  /*
   if (frame != lastFrame) {
     port.write(frame);
     lastFrame = frame;
   }
 
-  /*
   if (client.connected) {
     //console.log(JSON.stringify(world));
     //client.publish('artdanion/spectral/world', JSON.stringify(world));
@@ -172,7 +176,7 @@ function loop() {
   step();
   draw();
   flush();
-  setTimeout(loop, 40);
+  setTimeout(loop, 20);
 }
 
 setup();

@@ -55,10 +55,10 @@ void colorWipe(int color, int wait) {
 void setup() {
 
   //debug setup
-  Serial.begin(115200);
+  Serial1.begin(115200);
 
   // comm setup
-  Serial1.begin(115200);
+  Serial.begin(115200);
 
   // leds setup
   leds.begin();
@@ -98,36 +98,32 @@ void checkPot() {
   potVal = random(0, POT_MAX);
 
   if (potVal > potTreshold) {
-    Serial.print("above threshold: ");
-    Serial.println(potVal);
+    Serial1.print("above threshold: ");
+    Serial1.println(potVal);
 
     // publish value to comms
-    Serial1.println(potVal);
+    Serial.println(potVal);
   }
 }
 
 void checkComm() {
-  String incoming;
+  byte incoming[3];
 
-  if (Serial1.available() > 0) {
+  if (Serial.available() > 0) {
     // read the incoming byte:
-    incoming = Serial1.readStringUntil('\n');
-    //uint count = leds.numPixels() * bytesPerLED;
+    Serial.readBytesUntil('\n', incoming, 3);
 
-    if (incoming == "RED") {
-      colorWipe(RED, 0);
-    } else if (incoming == "BLUE") {
-      colorWipe(BLUE, 0);
-    } else if (incoming == "PINK") {
-      colorWipe(PINK, 0);
-    } else if (incoming == "ORANGE") {
-      colorWipe(ORANGE, 0);
-    }
+    Serial1.println("===========");
+    Serial1.println(incoming[0]);
+    Serial1.println(incoming[1]);
+    Serial1.println(incoming[2]);
+    Serial1.println("===========");
+
   }
 }
 
 void loop() {
-  if(millis() >= now + potInterval){
+  if (millis() >= now + potInterval) {
     now += potInterval;
     // read analog value from detector
     checkPot();
