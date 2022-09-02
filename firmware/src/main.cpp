@@ -5,7 +5,7 @@
 
 #define pot_address 0x2E // I2C address
 #define POTI A0
-#define POT_MAX 1023
+#define POT_MAX 120
 
 #define RED 0xFF0000
 #define GREEN 0x00FF00
@@ -111,13 +111,17 @@ void checkComm() {
 
   if (Serial.available() > 0) {
     // read the incoming byte:
-    Serial.readBytesUntil('\n', incoming, 3);
+    Serial.readBytes(incoming, 1);
+    if(incoming[0] == 1) {
+      Serial.readBytes(incoming, 3);
 
-    Serial1.println("===========");
-    Serial1.println(incoming[0]);
-    Serial1.println(incoming[1]);
-    Serial1.println(incoming[2]);
-    Serial1.println("===========");
+      Serial1.println("++++++++++");
+      Serial1.println(incoming[0]);
+      Serial1.println(incoming[1]);
+      Serial1.println(incoming[2]);
+      Serial1.println("===========");
+    }
+
 
   }
 }
