@@ -1,7 +1,20 @@
 const { SerialPort } = require('serialport');
+const { ReadlineParser } = require('@serialport/parser-readline')
 const mqtt = require('mqtt');
 
+// mqtt client
 const client = mqtt.connect('mqtt://mqtt.devlol.org');
+// serial port
+const port = new SerialPort({
+  path: '/dev/ttyUSB0',
+  baudRate: 115200,
+})
+// stream parser
+const parser = port.pipe(new ReadlineParser({ delimiter: '\r\n' }))
+
+let frame, lastFrame;
+let colorIndex = 0;
+const colors = ["RED", "BLUE", "PINK", "ORANGE"];
 
 const dimension = {
   x: 10,
@@ -117,28 +130,38 @@ function draw() {
     let s = spheres[i];
     drawSphere(s.center, s.age, s.color);
   }
+}
 
+function flush() {
+  let color = colors[colorIndex];
+  frame = Buffer.from(color) + "\n";
+
+  if (frame != lastFrame) {
+    port.write(frame);
+    lastFrame = frame;
+  }
+
+  /*
   if (client.connected) {
-    console.log(JSON.stringify(world));
+    //console.log(JSON.stringify(world));
     //client.publish('artdanion/spectral/world', JSON.stringify(world));
   }
+  */
 }
 
 function setup() {
   // initalize the world
   initWorld();
 
-  // open serial port
-  const port = new SerialPort({
-    path: '/dev/ttyACM0',
-    baudRate: 115200,
-  })
-
   // Listen for data on serial port
   // TODO: do this for every serial port / teensy
-  port.on('data', function (data) {
+
+  parser.on('data', function (data) {
     let id = 'alpha';
     spawnSignal(id, Number(data.toString()));
+
+    // for testing only
+    colorIndex = Math.floor(Math.random() * colors.length);
   })
 
   // start the loop
@@ -148,7 +171,8 @@ function setup() {
 function loop() {
   step();
   draw();
-  setTimeout(loop, 20);
+  flush();
+  setTimeout(loop, 40);
 }
 
 setup();

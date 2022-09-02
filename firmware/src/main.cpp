@@ -1,11 +1,11 @@
 #include <Arduino.h>
 #include <OctoWS2811.h>
-#include <ArduinoJson.h>
+//#include <ArduinoJson.h>
 #include "Wire.h"
 
 #define pot_address 0x2E // I2C address
 #define POTI A0
-#define POT_MAX 1023.00
+#define POT_MAX 1023
 
 #define RED 0xFF0000
 #define GREEN 0x00FF00
@@ -33,13 +33,24 @@ const int ledsPerStrip = 7;
 const int bytesPerLED = 3; // change to 4 if using RGBW
 DMAMEM int displayMemory[ledsPerStrip * numPins * bytesPerLED / 4];
 int drawingMemory[ledsPerStrip * numPins * bytesPerLED / 4];
+
 const int config = WS2811_GRB | WS2811_800kHz;
 OctoWS2811 leds(ledsPerStrip, displayMemory, drawingMemory, config, numPins, pinList);
 
-const float potTreshold = 0.5; // value between 0 and 1
+const int potTreshold = 512; // value between 0 and 1
 
 // runtime variables
-float potVal;
+int potVal;
+int now = 0;
+const int potInterval = 1000;
+
+void colorWipe(int color, int wait) {
+  for (int i = 0; i < leds.numPixels(); i++) {
+    leds.setPixel(i, color);
+    leds.show();
+    delayMicroseconds(wait);
+  }
+}
 
 void setup() {
 
@@ -81,32 +92,49 @@ void setup() {
   */
 
 void checkPot() {
-  potVal = analogRead(POTI) / POT_MAX;
+  potVal = analogRead(POTI);
+
+  // for testing only
+  potVal = random(0, POT_MAX);
+
   if (potVal > potTreshold) {
     Serial.print("above threshold: ");
     Serial.println(potVal);
-    delay(1000);
+
+    // publish value to comms
+    Serial1.println(potVal);
   }
 }
 
 void checkComm() {
+  String incoming;
+
+  if (Serial1.available() > 0) {
+    // read the incoming byte:
+    incoming = Serial1.readStringUntil('\n');
+    //uint count = leds.numPixels() * bytesPerLED;
+
+    if (incoming == "RED") {
+      colorWipe(RED, 0);
+    } else if (incoming == "BLUE") {
+      colorWipe(BLUE, 0);
+    } else if (incoming == "PINK") {
+      colorWipe(PINK, 0);
+    } else if (incoming == "ORANGE") {
+      colorWipe(ORANGE, 0);
+    }
+  }
 }
 
 void loop() {
-  // read analog value from detector
-  checkPot();
+  if(millis() >= now + potInterval){
+    now += potInterval;
+    // read analog value from detector
+    checkPot();
+  }
 
   // read frame from comm serial
   checkComm();
-
-}
-
-void colorWipe(int color, int wait) {
-  for (int i = 0; i < leds.numPixels(); i++) {
-    leds.setPixel(i, color);
-    leds.show();
-    delayMicroseconds(wait);
-  }
 }
 
 /*
