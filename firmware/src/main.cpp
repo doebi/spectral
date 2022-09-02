@@ -52,6 +52,14 @@ void colorWipe(int color, int wait) {
   }
 }
 
+void colorWipe3(byte r, byte g, byte b, int wait) {
+  for (int i = 0; i < leds.numPixels(); i++) {
+    leds.setPixel(i, r, g, b);
+    leds.show();
+    delayMicroseconds(wait);
+  }
+}
+
 void setup() {
 
   //debug setup
@@ -120,6 +128,8 @@ void checkComm() {
       Serial1.println(incoming[1]);
       Serial1.println(incoming[2]);
       Serial1.println("===========");
+
+      colorWipe3(incoming[0], incoming[1], incoming[2] , 0);
     }
 
 
