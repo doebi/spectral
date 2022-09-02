@@ -117,6 +117,23 @@ void checkPot() {
 void checkComm() {
   char incoming[3];
 
+  // static int state = 1;
+  // if (state == 1) {
+  //   // wait for start byte
+  //   if (Serial.available() > 0) {
+  //     if(incoming[0] == 1) {
+  //       state = 2;
+  //     }
+  //   }
+  // } else if (state == 2) {
+  //   // read in one frame
+  //   unsigned int len = Serial.available();
+  //   if (len > 0) {
+  //     Serial.readBytes(incoming, len);
+  //     colorWipe3(incoming[0], incoming[1], incoming[2] , 0);
+  //   }
+  // }
+
   if (Serial.available() > 0) {
     // read the incoming byte:
     Serial.readBytes(incoming, 1);
@@ -124,6 +141,9 @@ void checkComm() {
       Serial.readBytes(incoming, 3);
 
       colorWipe3(incoming[0], incoming[1], incoming[2] , 0);
+      Serial1.println("colorWipe3");
+    } else {
+      Serial1.println("waiting for startbyte");
     }
   }
 }
