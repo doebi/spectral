@@ -173,6 +173,8 @@ function setup() {
 
     console.log(data);
 
+    port.flush();//HACK_Frederik
+
     // for testing only
     colorIndex = Math.floor(Math.random() * colors.length);
   })

@@ -107,7 +107,7 @@ void checkPot() {
   potVal = random(0, POT_MAX);
 
   if (potVal > potTreshold) {
-    Serial1.print("above threshold: ");
+    Serial1.print("p");
     Serial1.println(potVal);
 
     // publish value to comms
@@ -135,14 +135,16 @@ void checkComm() {
   //   }
   // }
 
-  if (Serial.available() > 0) {
+  while (Serial.available() > 0) {
     // read the incoming byte:
     Serial.readBytes(incoming, 1);
     if(incoming[0] == 1) {
       Serial.readBytes(incoming, 3);
 
       colorWipe3(incoming[0], incoming[1], incoming[2] , 0);
-      // Serial1.println("colorWipe3");
+
+      Serial.clear();// prevent buffer stall
+      Serial1.println("c");
     } else {
       Serial1.println("WARN: waiting for startbyte");
     }
