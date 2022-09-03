@@ -37,12 +37,13 @@ int drawingMemory[ledsPerStrip * numPins * bytesPerLED / 4];
 const int config = WS2811_GRB | WS2811_800kHz;
 OctoWS2811 leds(ledsPerStrip, displayMemory, drawingMemory, config, numPins, pinList);
 
-const int potTreshold = 512; // value between 0 and 1
+const int potTreshold = 0; // value between 0 and POT_MAX
 
 // runtime variables
 int potVal;
 unsigned int now = 0;
-const unsigned int potInterval = 1000;
+// const unsigned int potInterval = 1000;
+const unsigned int potInterval = 100;
 
 void colorWipe(int color, int wait) {
   for (int i = 0; i < leds.numPixels(); i++) {
@@ -141,9 +142,9 @@ void checkComm() {
       Serial.readBytes(incoming, 3);
 
       colorWipe3(incoming[0], incoming[1], incoming[2] , 0);
-      Serial1.println("colorWipe3");
+      // Serial1.println("colorWipe3");
     } else {
-      Serial1.println("waiting for startbyte");
+      Serial1.println("WARN: waiting for startbyte");
     }
   }
 }

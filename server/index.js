@@ -171,6 +171,8 @@ function setup() {
     let id = 'alpha';
     spawnSignal(id, Number(data.toString()));
 
+    console.log(data);
+
     // for testing only
     colorIndex = Math.floor(Math.random() * colors.length);
   })
@@ -184,6 +186,7 @@ function loop() {
   draw();
   flush();
   setTimeout(loop, 20);
+  // setTimeout(loop, 100);
 }
 
 setup();
