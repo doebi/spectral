@@ -14,7 +14,15 @@ const parser = port.pipe(new ReadlineParser({ delimiter: '\r\n' }))
 
 let frame, lastFrame;
 let colorIndex = 0;
-const colors = ["RED", "BLUE", "PINK", "ORANGE"];
+var mainColor = [255, 255, 255];
+const colors = [
+  [255,0,0],
+  [255,255,0],
+  [0,255,0],
+  [0,255,255],
+  [0,0,255],
+  [255,0,255]
+];
 
 const dimension = {
   x: 10,
@@ -37,6 +45,14 @@ const teensies = {
   'delta': {
     center: [0, 0, 0]
   }
+}
+
+function darkenColor(c) {
+  return [
+    Math.floor(c[0] / 2),
+    Math.floor(c[1] / 2),
+    Math.floor(c[2] / 2)
+  ]
 }
 
 let world = null;
@@ -119,6 +135,8 @@ function step() {
     }
   }
 
+  mainColor = darkenColor(mainColor);
+
   spheres = nSpheres;
   //console.log(spheres);
 }
@@ -133,8 +151,8 @@ function draw() {
 }
 
 function flush() {
-  let color = colors[colorIndex];
-  frame = Buffer.from(color) + "\n";
+  frame = JSON.stringify(mainColor) + "\n";
+  console.log(mainColor);
 
   if (frame != lastFrame) {
     port.write(frame);
@@ -162,6 +180,7 @@ function setup() {
 
     // for testing only
     colorIndex = Math.floor(Math.random() * colors.length);
+    mainColor = colors[colorIndex];
   })
 
   // start the loop
@@ -172,7 +191,7 @@ function loop() {
   step();
   draw();
   flush();
-  setTimeout(loop, 40);
+  setTimeout(loop, 10);
 }
 
 setup();

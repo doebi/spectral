@@ -1,6 +1,6 @@
 #include <Arduino.h>
 #include <OctoWS2811.h>
-//#include <ArduinoJson.h>
+#include <ArduinoJson.h>
 #include "Wire.h"
 
 #define pot_address 0x2E // I2C address
@@ -34,14 +34,17 @@ const int bytesPerLED = 3; // change to 4 if using RGBW
 DMAMEM int displayMemory[ledsPerStrip * numPins * bytesPerLED / 4];
 int drawingMemory[ledsPerStrip * numPins * bytesPerLED / 4];
 
+DynamicJsonDocument doc(1024);
+JsonArray arr;
+
 const int config = WS2811_GRB | WS2811_800kHz;
 OctoWS2811 leds(ledsPerStrip, displayMemory, drawingMemory, config, numPins, pinList);
 
-const int potTreshold = 512; // value between 0 and 1
+const int potTreshold = 400; // value between 0 and 1
 
 // runtime variables
 int potVal;
-int now = 0;
+uint now = 0;
 const int potInterval = 1000;
 
 void colorWipe(int color, int wait) {
@@ -52,12 +55,20 @@ void colorWipe(int color, int wait) {
   }
 }
 
+void colorWipe3(byte r, byte g, byte b, int wait) {
+  for (int i = 0; i < leds.numPixels(); i++) {
+    leds.setPixel(i, r, g, b);
+    leds.show();
+    delayMicroseconds(wait);
+  }
+}
+
 void setup() {
 
-  //debug setup
+  //comm setup
   Serial.begin(115200);
 
-  // comm setup
+  // debug setup
   Serial1.begin(115200);
 
   // leds setup
@@ -98,31 +109,24 @@ void checkPot() {
   potVal = random(0, POT_MAX);
 
   if (potVal > potTreshold) {
-    Serial.print("above threshold: ");
-    Serial.println(potVal);
+    Serial1.print("above threshold: ");
+    Serial1.println(potVal);
 
     // publish value to comms
-    Serial1.println(potVal);
+    Serial.println(potVal);
   }
 }
 
 void checkComm() {
   String incoming;
 
-  if (Serial1.available() > 0) {
+  if (Serial.available() > 0) {
     // read the incoming byte:
-    incoming = Serial1.readStringUntil('\n');
-    //uint count = leds.numPixels() * bytesPerLED;
+    incoming = Serial.readStringUntil('\n');
 
-    if (incoming == "RED") {
-      colorWipe(RED, 0);
-    } else if (incoming == "BLUE") {
-      colorWipe(BLUE, 0);
-    } else if (incoming == "PINK") {
-      colorWipe(PINK, 0);
-    } else if (incoming == "ORANGE") {
-      colorWipe(ORANGE, 0);
-    }
+    deserializeJson(doc, incoming);
+
+    colorWipe3(doc[0], doc[1], doc[2], 0);
   }
 }
 
@@ -136,22 +140,3 @@ void loop() {
   // read frame from comm serial
   checkComm();
 }
-
-/*
-void potLoop()
-// sends values of 0x00 to 0x7F to pot in order to change the resistance
-// equates to 0~127
-{
-  for (rval = 0; rval < 125; rval++)
-  {
-    Wire.beginTransmission(pot_address);
-    Wire.write(0b00000000);
-    Wire.write(rval); //
-    Wire.endTransmission();
-    Serial1.print(" sent - ");
-    Serial1.println(rval, HEX);
-    Serial1.println(analogRead(14));
-    delay(dt);
-  }
-}
-*/
