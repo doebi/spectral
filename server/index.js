@@ -152,7 +152,6 @@ function draw() {
 
 function flush() {
   frame = JSON.stringify(mainColor) + "\n";
-  console.log(mainColor);
 
   if (frame != lastFrame) {
     port.write(frame);
@@ -177,6 +176,8 @@ function setup() {
   parser.on('data', function (data) {
     let id = 'alpha';
     spawnSignal(id, Number(data.toString()));
+
+    console.log(Number(data.toString()));
 
     // for testing only
     colorIndex = Math.floor(Math.random() * colors.length);

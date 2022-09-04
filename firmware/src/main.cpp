@@ -45,7 +45,7 @@ const int potTreshold = 400; // value between 0 and 1
 // runtime variables
 int potVal;
 uint now = 0;
-const int potInterval = 1000;
+const int potInterval = 400;
 
 void colorWipe(int color, int wait) {
   for (int i = 0; i < leds.numPixels(); i++) {
@@ -64,7 +64,6 @@ void colorWipe3(byte r, byte g, byte b, int wait) {
 }
 
 void setup() {
-
   //comm setup
   Serial.begin(115200);
 
@@ -79,12 +78,11 @@ void setup() {
   pinMode(POTI, INPUT);
 
   // wire setup
-  //Wire.begin();
-  //rval = 80;
-  //Wire.beginTransmission(pot_address);
-  //Wire.write(0b00000000);
-  //Wire.write(rval);
-  //Wire.endTransmission();
+  Wire.begin();
+  Wire.beginTransmission(pot_address);
+  Wire.write(0b00000000);
+  Wire.write(80);
+  Wire.endTransmission();
   //Serial1.print(" sent - ");
   //Serial1.println(rval, HEX);
 }
@@ -106,7 +104,7 @@ void checkPot() {
   potVal = analogRead(POTI);
 
   // for testing only
-  potVal = random(0, POT_MAX);
+  //potVal = random(0, POT_MAX);
 
   if (potVal > potTreshold) {
     Serial1.print("above threshold: ");
