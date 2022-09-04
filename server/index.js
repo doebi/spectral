@@ -1,12 +1,12 @@
 const { SerialPort } = require('serialport');
 const { ReadlineParser } = require('@serialport/parser-readline')
-const mqtt = require('mqtt');
+//const mqtt = require('mqtt');
 
 // mqtt client
-const client = mqtt.connect('mqtt://mqtt.devlol.org');
+//const client = mqtt.connect('mqtt://mqtt.devlol.org');
 // serial port
 const port = new SerialPort({
-  path: '/dev/ttyUSB0',
+  path: '/dev/ttyACM0',
   baudRate: 115200,
 })
 // stream parser
