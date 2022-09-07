@@ -1,16 +1,29 @@
 const { SerialPort } = require('serialport');
 const { ReadlineParser } = require('@serialport/parser-readline')
-//const mqtt = require('mqtt');
+const mqtt = require('mqtt');
 
 // mqtt client
-//const client = mqtt.connect('mqtt://mqtt.devlol.org');
-// serial port
-const port = new SerialPort({
-  path: '/dev/ttyACM0',
-  baudRate: 115200,
+const client = mqtt.connect('mqtt://mqtt.devlol.org');
+client.on('connect', function () {
+  client.subscribe('artdanion/spectral/threshold');
 })
+
+client.on('message', function (topic, message) {
+  // message is Buffer
+  let val = Number(message.toString())
+  if (val && val != NaN && val => 0 && val < 1024) {
+    //TODO: change threshold here
+  } else {
+  }
+})
+
+// serial port
+//const port = new SerialPort({
+//  path: '/dev/ttyACM0',
+//  baudRate: 115200,
+//})
 // stream parser
-const parser = port.pipe(new ReadlineParser({ delimiter: '\r\n' }))
+//const parser = port.pipe(new ReadlineParser({ delimiter: '\r\n' }))
 
 let frame, lastFrame;
 let colorIndex = 0;
@@ -154,16 +167,14 @@ function flush() {
   frame = JSON.stringify(mainColor) + "\n";
 
   if (frame != lastFrame) {
-    port.write(frame);
+    //port.write(frame);
     lastFrame = frame;
   }
 
-  /*
   if (client.connected) {
     //console.log(JSON.stringify(world));
     //client.publish('artdanion/spectral/world', JSON.stringify(world));
   }
-  */
 }
 
 function setup() {
@@ -173,16 +184,16 @@ function setup() {
   // Listen for data on serial port
   // TODO: do this for every serial port / teensy
 
-  parser.on('data', function (data) {
-    let id = 'alpha';
-    spawnSignal(id, Number(data.toString()));
+  //parser.on('data', function (data) {
+  //  let id = 'alpha';
+  //  spawnSignal(id, Number(data.toString()));
 
-    console.log(Number(data.toString()));
+  //  console.log(Number(data.toString()));
 
-    // for testing only
-    colorIndex = Math.floor(Math.random() * colors.length);
-    mainColor = colors[colorIndex];
-  })
+  //  // for testing only
+  //  colorIndex = Math.floor(Math.random() * colors.length);
+  //  mainColor = colors[colorIndex];
+  //})
 
   // start the loop
   loop();
