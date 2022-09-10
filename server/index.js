@@ -1,16 +1,46 @@
+var threshold = 990;
+
 const { SerialPort } = require('serialport');
 const { ReadlineParser } = require('@serialport/parser-readline')
-//const mqtt = require('mqtt');
+const mqtt = require('mqtt');
 
 // mqtt client
-//const client = mqtt.connect('mqtt://mqtt.devlol.org');
+const client = mqtt.connect('mqtt://mqtt.devlol.org');
+client.on('connect', function () {
+  client.subscribe('artdanion/spectral/threshold');
+})
+
+client.on('message', function (topic, message) {
+  // message is Buffer
+  let val = Number(message.toString())
+  if (val && val != NaN && val >= 0 && val < 1024) {
+    threshold = val;
+    console.log("changing threshold", threshold)
+  } else {
+  }
+});
 // serial port
-const port = new SerialPort({
+const port1 = new SerialPort({
   path: '/dev/ttyACM0',
   baudRate: 115200,
 })
+const port2 = new SerialPort({
+  path: '/dev/ttyACM1',
+  baudRate: 115200,
+})
+const port3 = new SerialPort({
+  path: '/dev/ttyACM2',
+  baudRate: 115200,
+})
+const port4 = new SerialPort({
+  path: '/dev/ttyACM3',
+  baudRate: 115200,
+})
 // stream parser
-const parser = port.pipe(new ReadlineParser({ delimiter: '\r\n' }))
+const parser1 = port1.pipe(new ReadlineParser({ delimiter: '\r\n' }))
+const parser2 = port2.pipe(new ReadlineParser({ delimiter: '\r\n' }))
+const parser3 = port3.pipe(new ReadlineParser({ delimiter: '\r\n' }))
+const parser4 = port4.pipe(new ReadlineParser({ delimiter: '\r\n' }))
 
 let frame, lastFrame;
 let colorIndex = 0;
@@ -154,7 +184,10 @@ function flush() {
   frame = JSON.stringify(mainColor) + "\n";
 
   if (frame != lastFrame) {
-    port.write(frame);
+    port1.write(frame);
+    port2.write(frame);
+    port3.write(frame);
+    port4.write(frame);
     lastFrame = frame;
   }
 
@@ -173,16 +206,23 @@ function setup() {
   // Listen for data on serial port
   // TODO: do this for every serial port / teensy
 
-  parser.on('data', function (data) {
+  let cb = function (data) {
     let id = 'alpha';
-    spawnSignal(id, Number(data.toString()));
+    //spawnSignal(id, Number(data.toString()));
 
-    console.log(Number(data.toString()));
 
     // for testing only
-    colorIndex = Math.floor(Math.random() * colors.length);
-    mainColor = colors[colorIndex];
-  })
+    if (Number(data.toString()) >= threshold) {
+      console.log(threshold, Number(data.toString()));
+      colorIndex = Math.floor(Math.random() * colors.length);
+      mainColor = colors[colorIndex];
+    }
+  }
+
+  parser1.on('data', cb);
+  parser2.on('data', cb);
+  parser3.on('data', cb);
+  parser4.on('data', cb);
 
   // start the loop
   loop();
