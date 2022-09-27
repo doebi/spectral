@@ -4,11 +4,15 @@ let yAngle = 0.4;
 
 let dimensions = [10, 7, 10];
 let centerStripes = [0, 0, 0];
+let countX = 0;
+let countY = 0;
+let countLed = 0;
+let countTeensy = 0;
 
 let stripes = new Array(10);
-
 let drawLeds = true;
 let debugLeds = false;
+let animations = false;
 let styleLeds = "spheres";
 
 var mqtt;
@@ -22,6 +26,7 @@ let topic2 = "ledStripe/teensy_2";
 let topic3 = "ledStripe/teensy_3";
 
 function setup() {
+    frameRate(15);
     createCanvas(600, 600, WEBGL);
     initStripesVariables();
     rectMode(CENTER);
@@ -34,6 +39,13 @@ function draw() {
     background(0);
 
     poseLeds();
+
+    //setBlack();
+
+    if (animations) {
+        drawAnimations();
+        countUp();
+    }
 
     if (debugLeds) {
         drawDebugLeds();
@@ -59,14 +71,91 @@ function initStripesVariables() {
 
 function setBlack() {
     for (var j = 0; j < 10; j++) {
-        for (var k = 0; k < 7; k++) {
-            for (var l = 0; l < 10; l++) {
+        for (var l = 0; l < 10; l++) {
+            for (var k = 6; k >= 0; k--) {
                 stripes[j][k][l] = color(20, 20);
             }
         }
     }
 }
 
+function countUp() {
+
+    countLed++;
+
+    switch (countTeensy) {
+
+        case (0):
+            if (countLed > dimensions[1]) {
+                countLed = 0;
+                countY++;
+            }
+            if (countY > dimensions[2] / 2 - 1) {
+                countY = 0;
+                countX++;
+            }
+            if (countX > dimensions[0] / 2 - 1) {
+                countLed = 0;
+                countY = 0;
+                countX = 5;
+                countTeensy++;
+            }
+            break;
+
+        case (1):
+            if (countLed > dimensions[1]) {
+                countLed = 0;
+                countY++;
+            }
+            if (countY > dimensions[2] / 2 - 1) {
+                countY = 0;
+                countX++;
+            }
+            if (countX > dimensions[0] - 1) {
+                countLed = 0;
+                countX = 5;
+                countY = 5;
+                countTeensy++;
+            }
+            break;
+
+        case (2):
+            if (countLed > dimensions[1]) {
+                countLed = 0;
+                countY++;
+            }
+            if (countY > dimensions[2] - 1) {
+                countY = 5;
+                countX++;
+            }
+            if (countX > dimensions[0] - 1) {
+                countLed = 0;
+                countX = 0;
+                countY = 5;
+                countTeensy++;
+            }
+            break;
+
+        case (3):
+            if (countLed > dimensions[1]) {
+                countLed = 0;
+                countY++;
+            }
+            if (countY > dimensions[2] - 1) {
+                countY = 5;
+                countX++;
+            }
+            if (countX > dimensions[0] / 2 - 1) {
+                countLed = 0;
+                countX = 0;
+                countY = 0;
+                countTeensy = 0;
+                setBlack();
+            }
+            break;
+
+    }
+}
 
 function drawStripes() {
     stroke(255, 255 / (10 * 3));
@@ -105,6 +194,10 @@ function drawDebugLeds() {
     for (led = 0; led < 10; led++) {
         setVoxelrgb(led, 0, 0, 222, 10, 121);
     }
+}
+
+function drawAnimations() {
+    setVoxelrgb(countX, (dimensions[1] - countLed - 1), countY, 100, 150, 250);
 }
 
 function setVoxelrgb(x, y, z, r, g, b) {
@@ -211,3 +304,69 @@ function onMessageArrived(message) {
     }
 
 }
+
+function keyPressed() {
+    setBlack();
+    let countX = 0;
+    let countY = 0;
+    let countLed = 0;
+    let countTeensy = 0;
+    let keyIndex = -1;
+    if (key == 'a' || key == 'A') {
+        animations = !animations;
+    }
+}
+
+function AdvancedCopy() {
+    //the text that is to be copied to the clipboard
+    var theText = '{"leds":[[200,200,0],[200,200,0],[200,200,0],[200,200,0],[200,200,0],[200,200,0],[200,200,0],[0,0,0],[0,0,0],[0,0,0],[0,0,0],[0,0,0],[0,0,0],[0,0,0],[0,0,0],[0,0,0],[0,0,0],[0,0,0],[0,0,0],[0,0,0],[0,0,0],[0,0,0],[0,0,0],[0,0,0],[0,0,0],[0,0,0],[0,0,0],[0,0,0],[200,200,0],[200,200,0],[200,200,0],[200,200,0],[200,200,0],[200,200,0],[200,200,0],[0,0,0],[0,0,0],[0,0,0],[0,0,0],[0,0,0],[0,0,0],[0,0,0],[0,0,0],[0,0,0],[0,0,0],[0,0,0],[0,0,0],[0,0,0],[0,0,0],[0,0,0],[0,0,0],[0,0,0],[0,0,0],[0,0,0],[0,0,0],[0,0,0],[200,200,0],[200,200,0],[200,200,0],[200,200,0],[200,200,0],[200,200,0],[200,200,0],[0,0,0],[0,0,0],[0,0,0],[0,0,0],[0,0,0],[0,0,0],[0,0,0],[0,0,0],[0,0,0],[0,0,0],[0,0,0],[0,0,0],[0,0,0],[0,0,0],[0,0,0],[0,0,0],[0,0,0],[0,0,0],[0,0,0],[0,0,0],[0,0,0],[200,200,0],[200,200,0],[200,200,0],[200,200,0],[200,200,0],[200,200,0],[200,200,0],[0,0,0],[0,0,0],[0,0,0],[0,0,0],[0,0,0],[0,0,0],[0,0,0],[0,0,0],[0,0,0],[0,0,0],[0,0,0],[0,0,0],[0,0,0],[0,0,0],[0,0,0],[0,0,0],[0,0,0],[0,0,0],[0,0,0],[0,0,0],[0,0,0],[200,200,0],[200,200,0],[200,200,0],[200,200,0],[200,200,0],[200,200,0],[200,200,0],[0,0,0],[0,0,0],[0,0,0],[0,0,0],[0,0,0],[0,0,0],[0,0,0],[0,0,0],[0,0,0],[0,0,0],[0,0,0],[0,0,0],[0,0,0],[0,0,0],[0,0,0],[0,0,0],[0,0,0],[0,0,0],[0,0,0],[0,0,0],[0,0,0],[200,200,0],[200,200,0],[200,200,0],[200,200,0],[200,200,0],[200,200,0],[200,200,0],[0,0,0],[0,0,0],[0,0,0],[0,0,0],[0,0,0],[0,0,0],[0,0,0],[0,0,0],[0,0,0],[0,0,0],[0,0,0],[0,0,0],[0,0,0],[0,0,0],[0,0,0],[0,0,0],[0,0,0],[0,0,0],[0,0,0],[0,0,0],[0,0,0],[200,200,0],[200,200,0],[200,200,0],[200,200,0],[200,200,0],[200,200,0],[200,200,0]]}';
+
+    //create our hidden div element
+    var hiddenCopy = document.createElement('div');
+    //set the innerHTML of the div
+    hiddenCopy.innerHTML = theText;
+    //set the position to be absolute and off the screen
+    hiddenCopy.style.position = 'absolute';
+    hiddenCopy.style.left = '-9999px';
+
+    //check and see if the user had a text selection range
+    var currentRange;
+    if (document.getSelection().rangeCount > 0) {
+        //the user has a text selection range, store it
+        currentRange = document.getSelection().getRangeAt(0);
+        //remove the current selection
+        window.getSelection().removeRange(currentRange);
+    }
+    else {
+        //they didn't have anything selected
+        currentRange = false;
+    }
+
+    //append the div to the body
+    document.body.appendChild(hiddenCopy);
+    //create a selection range
+    var CopyRange = document.createRange();
+    //set the copy range to be the hidden div
+    CopyRange.selectNode(hiddenCopy);
+    //add the copy range
+    window.getSelection().addRange(CopyRange);
+
+    //since not all browsers support this, use a try block
+    try {
+        //copy the text
+        document.execCommand('copy');
+    }
+    catch (err) {
+        window.alert("Your Browser Doesn't support this! Error : " + err);
+    }
+    //remove the selection range (Chrome throws a warning if we don't.)
+    window.getSelection().removeRange(CopyRange);
+    //remove the hidden div
+    document.body.removeChild(hiddenCopy);
+
+    //return the old selection range
+    if (currentRange) {
+        window.getSelection().addRange(currentRange);
+    }
+}
+
