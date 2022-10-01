@@ -13,17 +13,25 @@ let stripes = new Array(10);
 let drawLeds = true;
 let debugLeds = false;
 let animations = false;
+let sphereAni = false;
 let styleLeds = "spheres";
+var mainColor = [255, 255, 255];
+var centerSphere = [0, 0, 0];
+
+let spheres = [];
 
 var mqtt;
 var reconnectTimeout = 2000;
 var host = "mqtt.devlol.org";
 var port = 443;
 
+const maxAge = 30;
+
 let topic0 = "ledStripe/teensy_0";
 let topic1 = "ledStripe/teensy_1";
 let topic2 = "ledStripe/teensy_2";
 let topic3 = "ledStripe/teensy_3";
+
 
 function setup() {
     frameRate(15);
@@ -49,6 +57,12 @@ function draw() {
 
     if (debugLeds) {
         drawDebugLeds();
+    }
+
+    if (sphereAni) {
+        setBlack();
+        drawSphere();
+        step();
     }
 
     if (drawLeds) {
@@ -200,10 +214,23 @@ function drawAnimations() {
     setVoxelrgb(countX, (dimensions[1] - countLed - 1), countY, 100, 150, 250);
 }
 
-function setVoxelrgb(x, y, z, r, g, b) {
+function setVoxelrgb(xf, yf, zf, r, g, b) {
+    let x = xf.toFixed();
+    let y = yf.toFixed();
+    let z = zf.toFixed();
+
     if (x >= 0 && x < dimensions[0])
         if (y >= 0 && y < dimensions[1])
-            if (z >= 0 && z < dimensions[2]) stripes[x][y][z] = color(r, g, b);
+            if (z >= 0 && z < dimensions[2]) stripes[Math.abs(x)][Math.abs(y)][Math.abs(z)] = color(r, g, b);
+}
+function setVoxel(xf, yf, zf, color) {
+    let x = xf.toFixed();
+    let y = yf.toFixed();
+    let z = zf.toFixed();
+
+    if (x >= 0 && x < dimensions[0])
+        if (y >= 0 && y < dimensions[1])
+            if (z >= 0 && z < dimensions[2]) stripes[Math.abs(x)][Math.abs(y)][Math.abs(z)] = color;
 }
 
 function poseLeds() {
@@ -305,6 +332,66 @@ function onMessageArrived(message) {
 
 }
 
+function drawSphere() {
+    //console.log('drawSphere', centerSphere, radius, color);
+    for (let i = 0; i < spheres.length; i++) {
+        let res = 60;
+        for (let m = 0; m < res; m++) {
+            for (let n = 0; n < res; n++) {
+                setVoxel(
+                    spheres[i].center[0] + spheres[i].age * Math.sin(Math.PI * m / res) * Math.cos(2 * Math.PI * n / res),
+                    spheres[i].center[1] + spheres[i].age * Math.sin(Math.PI * m / res) * Math.sin(2 * Math.PI * n / res),
+                    spheres[i].center[2] + spheres[i].age * Math.cos(Math.PI * m / res),
+                    spheres[i].color);
+            }
+        }
+    }
+}
+
+function step() {
+    let nSpheres = [];
+    for (var i = 0, len = spheres.length; i < len; i++) {
+        let s = spheres[i];
+        s.age += 1;
+
+        if (spheres[i].age < maxAge) {
+            nSpheres.push(s);
+        }
+    }
+
+    mainColor = darkenColor(mainColor);
+
+    spheres = nSpheres;
+    //console.log(spheres);
+}
+
+function darkenColor(c) {
+    return [
+        Math.floor(c[0] / 2),
+        Math.floor(c[1] / 2),
+        Math.floor(c[2] / 2)
+    ]
+}
+
+function spawnSignal(id, strength) {
+    let t = teensies[id];
+    let sphere = {
+        center: t.center,
+        strength,
+        age: 0,
+        color: randomColor()
+    };
+    spheres.push(sphere);
+}
+
+function randomColor() {
+    return [
+        Number(Number(Math.random() * 255).toFixed()),
+        Number(Number(Math.random() * 255).toFixed()),
+        Number(Number(Math.random() * 255).toFixed())
+    ];
+}
+
 function keyPressed() {
     setBlack();
     let countX = 0;
@@ -315,6 +402,47 @@ function keyPressed() {
     if (key == 'a' || key == 'A') {
         animations = !animations;
     }
+    if (key == 's' || key == 'S') {
+        sphereAni = !sphereAni;
+        if (sphereAni) {
+            let sphereNew = {
+                center: [0, 0, 0],
+                age: 0,
+                color: randomColor()
+            };
+            spheres.push(sphereNew);
+        }
+        key = -1;
+    }
+    if (key == 't' || key == 'T') {
+        if (sphereAni) {
+            console.log('new Sphere');
+            let centerNew = Number(Number(Math.random() * 3).toFixed());
+            let startPoint = [];
+            switch (centerNew) {
+                case 0:
+                    startPoint = [0, 0, 0];
+                    break;
+                case 1:
+                    startPoint = [9, 0, 0];
+                    break;
+                case 2:
+                    startPoint = [0, 0, 9];
+                    break;
+                case 3:
+                    startPoint = [9, 0, 9];
+                    break;
+            }
+            let sphereNew = {
+                center: startPoint,
+                age: 0,
+                color: randomColor()
+            };
+            spheres.push(sphereNew);
+            key = -1;
+        }
+    }
+
 }
 
 function AdvancedCopy() {
